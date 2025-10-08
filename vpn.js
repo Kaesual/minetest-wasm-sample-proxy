@@ -1,8 +1,8 @@
 'use strict';
 
-import assert from 'assert';
+import assert from 'node:assert';
 import { randint, inet_ntop, inet_pton } from './util.js';
-import { randomBytes } from 'crypto';
+import { randomBytes } from 'node:crypto';
 
 function rand_vpn_code() {
     return randomBytes(6).toString("hex").toUpperCase();

@@ -1,6 +1,6 @@
 'use strict';
 
-import assert from 'assert';
+import assert from 'node:assert';
 import { sanitize } from './util.js';
 import { DIRECT_PROXY } from './settings.js';
 

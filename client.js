@@ -1,8 +1,8 @@
 'use strict';
 
-import assert from 'assert';
-import { isIPv4 } from 'net';
-import { format } from 'util'; // node.js built-in
+import assert from 'node:assert';
+import { isIPv4 } from 'node:net';
+import { format } from 'node:util'; // node.js built-in
 
 import { DIRECT_PROXY } from './settings.js';
 import { ConnectProxy } from './ConnectProxy.js';

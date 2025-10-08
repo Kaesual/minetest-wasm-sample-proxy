@@ -1,7 +1,11 @@
 services:
-  web:
+  proxy:
+    image: minetest
     build:
       context: .
       dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    user: deno
     ports:
       - "8888:8888"
