@@ -1,22 +1,20 @@
-'use strict';
-
 import assert from 'node:assert';
+import { IncomingMessage } from 'node:http';
 import { isIPv4 } from 'node:net';
 
-export function inet_pton(ip) {
+export function inet_pton(ip: string) {
     assert(isIPv4(ip));
     const ret = new ArrayBuffer(4);
     const v = new DataView(ret);
     var [a, b, c, d] = ip.split('.');
-    v.setUint8(0, parseInt(a));
-    v.setUint8(1, parseInt(b));
-    v.setUint8(2, parseInt(c));
-    v.setUint8(3, parseInt(d));
+    v.setUint8(0, parseInt(a!));
+    v.setUint8(1, parseInt(b!));
+    v.setUint8(2, parseInt(c!));
+    v.setUint8(3, parseInt(d!));
     return ret; // network order
 }
 
-export function inet_ntop(n) {
-    assert(n instanceof ArrayBuffer)
+export function inet_ntop(n: ArrayBuffer) {
     assert(n.byteLength == 4);
     const v = new DataView(n);
     const a = v.getUint8(0);
@@ -27,7 +25,7 @@ export function inet_ntop(n) {
 }
 
 // Make an untrusted string safe to print
-export function sanitize(s) {
+export function sanitize(s: string) {
     return s.replace(/[^\x20-\x7E]/g, "");
 }
 
@@ -36,16 +34,20 @@ export function sanitize(s) {
 // between hosts, this may be a chain of addresses.
 // These addresses are reported voluntarily by each host,
 // and thus may or may not be accurate.
-export function extract_ip_chain(request) {
-    const chain = [];
-    for (let entry of request.headers['x-forwarded-for'].split(',')) {
-        chain.push(sanitize(entry.trim()));
+export function extract_ip_chain(request: IncomingMessage) {
+    const chain: string[] = [];
+    if (request.headers['x-forwarded-for']) {
+        for (let entry of (request.headers['x-forwarded-for'] as string).split(',')) {
+            chain.push(sanitize(entry.trim()));
+        }
     }
-    chain.push(request.socket.remoteAddress);
+    if (request.socket.remoteAddress) {
+        chain.push(request.socket.remoteAddress);
+    }
     return chain;
 }
 
 // Returns a random integer in [a, b]
-export function randint(a, b) {
+export function randint(a: number, b: number) {
     return a + Math.floor(Math.random() * (b - a + 1));
 }

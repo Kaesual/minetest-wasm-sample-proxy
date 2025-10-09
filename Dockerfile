@@ -1,12 +1,12 @@
-FROM node:lts-alpine as build
+FROM denoland/deno:2.5.3 AS build
 
 WORKDIR /app
 
 COPY package.json .
 
-RUN npm install
+RUN deno install
 
-FROM denoland/deno:2.5.3 as runtime
+FROM denoland/deno:2.5.3 AS runtime
 
 WORKDIR /app
 
@@ -16,4 +16,4 @@ COPY . .
 
 USER deno
 
-CMD ["deno", "--allow-net", "--allow-env", "main.js"]
+CMD ["deno", "--allow-net", "--allow-env", "src/main.ts"]

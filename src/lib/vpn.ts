@@ -1,8 +1,7 @@
-'use strict';
-
 import assert from 'node:assert';
-import { randint, inet_ntop, inet_pton } from './util.js';
+import { randint, inet_ntop, inet_pton } from '../util';
 import { randomBytes } from 'node:crypto';
+import { Client } from './client';
 
 function rand_vpn_code() {
     return randomBytes(6).toString("hex").toUpperCase();
@@ -11,6 +10,11 @@ function rand_vpn_code() {
 const vpns = new Map();
 
 class VPN {
+    serverCode: string;
+    clientCode: string;
+    game: string | null;
+    targets: Map<string, VPNTarget>;
+
     constructor() {
         this.serverCode = rand_vpn_code();
         this.clientCode = rand_vpn_code();
@@ -20,7 +24,7 @@ class VPN {
         vpns.set(this.clientCode, this);
     }
 
-    route(ip, port) {
+    route(ip: string, port: number) {
         let addr = `${ip}:${port}`;
         if (this.targets.has(addr)) {
             return this.targets.get(addr);
@@ -29,19 +33,25 @@ class VPN {
     }
 };
 
-export function vpn_make(game) {
+export function vpn_make(game: string) {
     const vpn = new VPN();
     return [vpn.serverCode, vpn.clientCode];
 }
 
-export function vpn_connect(client, code, bindport) {
+export function vpn_connect(client: Client, code: string, bindport: number) {
     if (!vpns.has(code)) return null;
     const vpn = vpns.get(code);
     return new VPNTarget(vpn, client, code, bindport);
 }
 
-class VPNTarget {
-    constructor(vpn, client, code, bindport) {
+export class VPNTarget {
+    vpn: VPN;
+    client: Client;
+    bindport: number;
+    ip: string;
+    addr: string;
+
+    constructor(vpn: VPN, client: Client, code: string, bindport: number) {
         this.vpn = vpn;
         this.client = client;
         this.bindport = bindport;
@@ -61,7 +71,7 @@ class VPNTarget {
     }
 
     // Forward a message from the client
-    forward(data) {
+    forward(data: ArrayBuffer) {
         // Data is encapsulated with a 12 byte header.
         // Magic      - 4 bytes 0x778B4CF3
         // Dest IP    - 4 bytes 0xAABBCCDD for AA.BB.CC.DD

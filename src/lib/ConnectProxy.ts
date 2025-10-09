@@ -1,8 +1,7 @@
-'use strict';
-
 import assert from 'node:assert';
-import { sanitize } from './util.js';
-import { DIRECT_PROXY } from './settings.js';
+import { sanitize } from '../util';
+import { DIRECT_PROXY } from '../settings';
+import { Client } from './client';
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -48,35 +47,40 @@ const PAYLOAD = {
 
 // Fake a CONNECT proxy to simulate servers.minetest.net response
 export class ConnectProxy {
-    constructor(client) {
+    client: Client;
+    firstLine: boolean;
+    conn: any;
+
+    constructor(client: Client) {
         this.client = client;
         this.firstLine = true;
         this.conn = null;
     }
 
-    forward(data) {
+    forward(buffer: ArrayBuffer) {
         if (this.firstLine) {
             this.firstLine = false;
-            this.handle_handshake(data);
+            this.handle_handshake(buffer);
             return;
         }
-        if (!(data instanceof ArrayBuffer)) {
+        if (!(buffer instanceof ArrayBuffer)) {
             throw new Error("ConnectProxy received non-binary messages");
         }
-        data = textDecoder.decode(data);
+        const data = textDecoder.decode(buffer);
         assert(data.endsWith('\r\n\r\n'));
-        let lines = data.split('\r\n');
+        const lines = data.split('\r\n');
         assert(lines.length >= 1);
-        let tokens = lines[0].split(' ');
+        const tokens = lines[0]!.split(' ');
         assert(tokens[0] == 'GET');
-        let url = sanitize(tokens[1]);
+        assert(tokens[1]);
+        const url = sanitize(tokens[1]!);
         const now = (new Date()).toUTCString();
-        let response;
+        let response: string;
         if (url.startsWith('/geoip')) {
             response = GEOIP_RESPONSE.replace(/%NOW%/g, now);
         } else if (url.startsWith('/list')) {
             const payload = JSON.stringify(PAYLOAD);
-            response = LIST_RESPONSE.replace(/%NOW%/g, now).replace('%LENGTH%', payload.length + 1).replace('%PAYLOAD%', payload);
+            response = LIST_RESPONSE.replace(/%NOW%/g, now).replace('%LENGTH%', `${payload.length + 1}`).replace('%PAYLOAD%', payload);
             this.client.log("Sending virtual server list")
         } else {
             this.client.log(`Invalid GET request for ${url}`);
@@ -86,22 +90,22 @@ export class ConnectProxy {
         this.client.send(textEncoder.encode(response));
     }
 
-    handle_handshake(data) {
+    handle_handshake(buffer: ArrayBuffer) {
         // The CONNECT line and it's headers could be split among several packets.
         // In a real server, this would aggregate data until it sees \r\n\r\n
         // But minetest-wasm always sends it as one packet, so just assume that.
-        data = textDecoder.decode(data);
+        const data = textDecoder.decode(buffer);
         assert(data.endsWith('\r\n\r\n'));
-        let lines = data.split('\r\n');
+        const lines = data.split('\r\n');
         assert(lines.length >= 1);
-        let tokens = lines[0].split(' ');
+        const tokens = lines[0]!.split(' ');
         assert.strictEqual(tokens.length, 3);
         assert.strictEqual(tokens[0], 'CONNECT');
         assert.strictEqual(tokens[2], 'HTTP/1.1');
-        let host_port = tokens[1].split(':');
+        const host_port = tokens[1]!.split(':');
         assert.strictEqual(host_port.length, 2);
-        let host = host_port[0];
-        let port = parseInt(host_port[1]);
+        const host = host_port[0];
+        const port = parseInt(host_port[1]!);
         if (host != 'servers.minetest.net' || port != 80) {
             this.client.log(`Ignoring request to proxy to ${host}:${port}`);
             this.client.close();

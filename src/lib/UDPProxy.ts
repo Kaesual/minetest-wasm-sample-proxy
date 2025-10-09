@@ -1,9 +1,15 @@
-'use strict';
-
-import dgram from 'node:dgram';
+import dgram, { RemoteInfo } from 'node:dgram';
+import { Client } from './client';
 
 export class UDPProxy {
-    constructor(client, ip, port) {
+    client: Client;
+    socket: dgram.Socket | null;
+    ip: string;
+    port: number;
+    sendok: boolean;
+    sendqueue: Uint8Array<ArrayBuffer>[];
+
+    constructor(client: Client, ip: string, port: number) {
         const socket = dgram.createSocket('udp4');
         this.client = client;
         this.socket = socket;
@@ -17,9 +23,9 @@ export class UDPProxy {
         socket.bind();
     }
 
-    forward(data) {
+    forward(buffer: ArrayBuffer) {
         // This creates a view of the ArrayBuffer
-        data = new Uint8Array(data);
+        const data = new Uint8Array(buffer);
         if (data.byteLength < 4 ||
             data[0] != 0x4f ||
             data[1] != 0x45 ||
@@ -30,30 +36,30 @@ export class UDPProxy {
 
         if (this.sendok) {
             // data must be a typed array here
-            this.socket.send(data, this.port, this.ip);
+            this.socket!.send(data, this.port, this.ip);
         } else {
             this.sendqueue.push(data);
         }
     }
 
     handle_listening() {
-        const sourcePort = this.socket.address().port;
+        const sourcePort = this.socket!.address().port;
         this.log(`Bound ${sourcePort} -> ${this.ip}:${this.port}`);
         this.sendok = true;
         if (this.sendqueue.length > 0) {
             for (const data of this.sendqueue) {
-                this.socket.send(data, this.port, this.ip);
+                this.socket!.send(data, this.port, this.ip);
             }
             this.sendqueue = [];
         }
     }
 
-    handle_error(err) {
+    handle_error(err: Error) {
         this.log("Socket error: " + err);
         this.close();
     }
 
-    handle_message(msg, rinfo) {
+    handle_message(msg: Buffer, rinfo: RemoteInfo) {
         if (rinfo.address != this.ip || rinfo.port != this.port) {
             this.log("Ignoring unsolicited packet from " + rinfo.address + " port " + rinfo.port);
             return;
@@ -61,7 +67,7 @@ export class UDPProxy {
         this.client.send(msg);
     }
 
-    log(msg) {
+    log(msg: string) {
         this.client.log(msg);
     }
 

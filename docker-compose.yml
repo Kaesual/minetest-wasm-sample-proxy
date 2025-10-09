@@ -3,9 +3,8 @@ services:
     image: minetest
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.bun
     volumes:
       - .:/app
-    user: deno
     ports:
       - "8888:8888"

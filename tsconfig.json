@@ -1,0 +1,55 @@
+{
+  "compilerOptions": {
+    // Target and Module Settings
+    "target": "ES2022",                          // Modern JavaScript output
+    "module": "ESNext",                          // ES modules (matching your package.json "type": "module")
+    "lib": ["ES2022"],                          // Include modern JS library features
+    "moduleResolution": "node",                  // Node.js-style module resolution
+    
+    // Output Settings
+    "outDir": "./dist",                          // Output directory for compiled files
+    "rootDir": "./src",                          // Root directory of source files
+    "sourceMap": true,                           // Generate source maps for debugging
+    "declaration": true,                          // Generate .d.ts declaration files
+    "declarationMap": true,                       // Generate source maps for declarations
+    
+    // JavaScript Support
+    "allowJs": true,                             // Allow JavaScript files
+    "checkJs": false,                            // Don't type-check JS files (can be enabled if needed)
+    
+    // Interop Constraints
+    "esModuleInterop": true,                     // Enable interoperability between CommonJS and ES Modules
+    "allowSyntheticDefaultImports": true,        // Allow default imports from modules with no default export
+    "forceConsistentCasingInFileNames": true,    // Disallow inconsistently-cased references
+    
+    // Type Checking
+    "strict": true,                              // Enable all strict type-checking options
+    "noUnusedLocals": true,                      // Report errors on unused locals
+    "noUnusedParameters": true,                  // Report errors on unused parameters
+    "noImplicitReturns": true,                   // Report error when not all code paths return
+    "noFallthroughCasesInSwitch": true,         // Report errors for fallthrough cases in switch
+    "noUncheckedIndexedAccess": true,           // Include 'undefined' in index signature results
+    
+    // Skip Lib Check
+    "skipLibCheck": true,                        // Skip type checking of declaration files
+    
+    // Emit Options
+    "removeComments": true,                      // Remove comments in output
+    "preserveConstEnums": true,                  // Preserve const enums in output
+    
+    // Advanced Options
+    "resolveJsonModule": true,                   // Include modules imported with .json extension
+    "isolatedModules": true                      // Ensure each file can be safely transpiled
+  },
+  
+  // Include and Exclude
+  "include": [
+    "src/**/*"                                   // Include all files in src directory
+  ],
+  "exclude": [
+    "node_modules",                              // Exclude node_modules
+    "dist",                                      // Exclude output directory
+    "**/*.spec.ts",                              // Exclude test files
+    "**/*.test.ts"                               // Exclude test files
+  ]
+}
