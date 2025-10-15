@@ -58,10 +58,7 @@ export class VPNTarget {
         if (code == vpn.serverCode) {
             this.ip = '172.16.0.1';
         } else if (code == vpn.clientCode) {
-            const b = randint(16, 32);
-            const c = randint(1, 254);
-            const d = randint(1, 254);
-            this.ip = `172.${b}.${c}.${d}`;
+            this.ip = `172.${randint(16, 32)}.${randint(1, 254)}.${randint(1, 254)}`;
         } else {
             throw new Error('Invalid code');
         }
