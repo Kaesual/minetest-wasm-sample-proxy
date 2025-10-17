@@ -1,7 +1,7 @@
 'use strict';
 
-import assert from 'assert';
-import { isIPv4 } from 'net';
+import assert from 'node:assert';
+import { isIPv4 } from 'node:net';
 
 export function inet_pton(ip) {
     assert(isIPv4(ip));

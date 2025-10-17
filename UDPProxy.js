@@ -1,6 +1,6 @@
 'use strict';
 
-import dgram from 'dgram';
+import dgram from 'node:dgram';
 
 export class UDPProxy {
     constructor(client, ip, port) {
